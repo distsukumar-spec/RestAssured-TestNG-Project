@@ -1,0 +1,5 @@
+{
+  "fromAccountNumber": "integer($int64)",
+  "toAccountNumber": "integer($int64)",
+  "transferAmount": "number($double)"
+}

@@ -1,0 +1,20 @@
+{
+  "firstName": "string",
+  "lastName": "string",
+  "middleName": "string",
+  "customerNumber": "integer($int64)",
+  "status": "string",
+  "customerAddress": {
+    "address1": "string",
+    "address2": "string",
+    "city": "string",
+    "state": "string",
+    "zip": "string",
+    "country": "string"
+  },
+  "contactDetails": {
+    "emailId": "string",
+    "homePhone": "string",
+    "workPhone": "string"
+  }
+}

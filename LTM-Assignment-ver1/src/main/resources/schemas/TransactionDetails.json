@@ -1,0 +1,6 @@
+{
+  "accountNumber": "integer($int64)",
+  "txDateTime": "string($date-time)",
+  "txType": "string",
+  "txAmount": "number($double)"
+}
