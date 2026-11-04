@@ -21,23 +21,7 @@ public class ResponseValidator {
         }
     }
 
-    public static void validateResponseCode(Response response, int expectedCode,boolean dependencyRequired) {
-        int actualCode = response.getStatusCode();
-        if (response.statusCode() != expectedCode) {
-            if(actualCode>300 && actualCode<400 && response.getBody().jsonPath().getString("redirectUrl")!=null){
-                logger.info("Response code Partially accepted. This request requires redirection call with Redirect URL: " + response.getBody().jsonPath().getString("redirectUrl"));
-            }else{
-                logger.severe("Response doesn't contain redirect URL. Expected response code: " + expectedCode + ", but got: " + actualCode);
-                if(dependencyRequired){
-                    logger.warning("This api response is required for further api calls. Hence the response considered to be accepted regardless of redirectional status codes.");
-                }else {
-                    throw new AssertionError("Expected response code: " + expectedCode + ", but got: " + actualCode);
-                }
-            }
-        }else{
-            logger.info("Response code validation passed. Expected and actual code: " + expectedCode);
-        }
-    }
+
 
     public static void validateJsonPathData(Response response,String jsonPath, Object expectedValue) {
         Object actualValue = response.jsonPath().get(jsonPath);

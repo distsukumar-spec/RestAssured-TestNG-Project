@@ -302,7 +302,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
            String accountNumber = accounts.getValue().getAccountNumber().toString();
             getAccount = APIBuilder.get(EndPoints.AccountTransactions.getAccountEndpoint(accountNumber)
                     ,HeaderConfig.getDefaultHeaders());
-            ResponseValidator.validateResponseCode(getAccount, 200,true);
+            ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
 
             logSuccess("Verify Created Account: "+accountNumber
                                 +" Account Type: "+account.getAccountType()
@@ -486,7 +486,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         );
 
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
         ResponseValidator.validateJsonPathData(getAccount, "accountBalance", expectedBalance);
         logSuccess("Account balance verified: " + expectedBalance);
     }
@@ -596,7 +596,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         );
 
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
         ResponseValidator.validateJsonPathData(getAccount, "accountBalance", balance);
         logSuccess("Account balance verified: " + balance);
     }
@@ -709,7 +709,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
                 HeaderConfig.getDefaultHeaders()
         );
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
 
     }
 
@@ -723,7 +723,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
                 HeaderConfig.getDefaultHeaders()
         );
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
         ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance", runTimeAccts.get(account).getAccountBalance());
         logSuccess("Account balance for account: "+runTimeAccts.get(account).getAccountNumber()
                                         +" verified before transfer: " + runTimeAccts.get(account).getAccountBalance());
@@ -741,7 +741,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
                 HeaderConfig.getDefaultHeaders()
         );
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
 
         ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance", runTimeAccts.get(sourceAccount).getAccountBalance().subtract(transferredAmount));
         logSuccess("Account balance decreased in the Source account and Verified: " +  runTimeAccts.get(sourceAccount).getAccountBalance().subtract(transferredAmount));
@@ -758,7 +758,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         );
 
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
         ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance",  runTimeAccts.get(destAccount).getAccountBalance().add(transferredAmount));
         logSuccess("Account balance increased in the Destination account and Verified: " + runTimeAccts.get(destAccount).getAccountBalance().add(transferredAmount));
     }
@@ -890,7 +890,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         );
 
         logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount, 200, true);
+        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
         ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance",  runTimeAccts.get(account).getAccountBalance());
         logSuccess("Account balance remains same in the account "+account);
         logSuccess("Account balance - Before: "+runTimeAccts.get(account).getAccountBalance()

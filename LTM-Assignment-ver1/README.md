@@ -149,3 +149,102 @@ Maven Surefire is configured to execute `E2E_CustomerLifeCycle_TestRunner`.
 - JUnit Platform
 - TestNG assertions
 - JSON Schema validation
+
+## 1. Test Strategy
+
+### Objective
+Validate critical Banking API business workflows using a risk-based functional testing approach, focusing on customer lifecycle operations, account management, financial transaction accuracy, data persistence, and error handling.
+
+### Testing Approach
+The framework follows a Behavior-Driven Development (BDD) approach using Cucumber and Gherkin, with Java, RestAssured, JUnit Platform, and Maven. Scenarios are prioritized based on business impact, particularly financial transaction integrity, customer data consistency, and invalid operation handling.
+
+### Implemented Test Coverage
+1. **Customer Lifecycle:** Steps cover customer creation, retrieval, contact updates, account creation, deletion, and post-deletion verification.
+2. **Successful Fund Transfer:** Steps cover transfers between two customer accounts, including balance calculations and debit/credit transaction-history validation.
+3. **Rejected Fund Transfers:** Parameterized scenarios cover zero, negative, and insufficient-funds amounts, verifying rejection responses, unchanged balances, and unchanged transaction counts.
+4. **Duplicate Customer Validation:** Attempt to create a customer profile using existing customer details and verify the expected HTTP `400` response and duplicate-customer error message.
+5. **Duplicate Account Validation:** Attempt to create an account using existing account details and verify the expected HTTP `400` response and duplicate-account error message.
+
+### Execution Scope
+
+- The automation suite covers customer lifecycle operations, account creation, successful fund transfers, rejected fund transfers, and additional negative validation scenarios.
+- All implemented scenarios are included in the test execution scope and can be executed through the Maven test runner.
+- Actual execution outcomes, including passed, failed, and skipped scenarios, are documented separately in the execution results.
+
+### Test Design Principles
+- **BDD-based test design:** Gherkin scenarios map to Java step definitions.
+- **Reusable API operations:** `APIBuilder` centralizes HTTP operations; `EndPoints` maintains endpoint definitions.
+- **POJO-based data modeling:** Structured customer, account, contact, and transaction models.
+- **Synthetic test data:** Fake-data factory plus DataTables and Scenario Outline inputs.
+- **Data-driven testing:** DataTables and Scenario Outline examples reuse steps across cases.
+- **Centralized validation:** `ResponseValidator` and `AppSpecificAssertions` support status, body, JSON-path, schema, and business assertions.
+- **Financial precision:** `BigDecimal` is used for transfer amounts and expected balance calculations, subject to the response-parsing limitation below.
+- **Runtime data management:** Runtime maps track account details and transaction counts across steps.
+- **Environment configuration:** `ConfigReader` supports properties and Maven `-Denv` selection.
+- **Failure diagnostics:** Scenario logging, status/response-time details, and response attachments.
+- **Reporting:** Cucumber HTML and JSON reports are configured.
+
+### Assumptions
+1. The assessment API supports synthetic customer and account creation.
+2. Explicit opening balances are supported during account creation.
+3. Transfers occur between accounts belonging to the same customer.
+4. Transfers use the same currency, have no fee, and do not permit overdrafts.
+5. Successful transfers return HTTP `200`; non-positive and insufficient-funds transfers return HTTP `400`.
+6. Rejected transfers leave balances unchanged and create no successful debit/credit entries.
+7. Customer deletion removes associated accounts.
+8. Duplicate-account creation is expected to return HTTP `400` in the implemented test.
+
+## 2. Key Risks and Mitigation
+
+| Priority | Key risk                                                        | Framework validation or mitigation |
+|---|-----------------------------------------------------------------|---|
+| P0 — Critical | Incorrect fund transfer balances                                | `BigDecimal` calculations and account retrieval before/after transfer |
+| P0 — Critical | Rejected transfers change balances                              | Compare both account balances before and after rejection |
+| P0 — Critical | Transaction history differs from fund movements                 | Runtime transaction-count tracking plus debit/credit detail validation |
+| P1 — High | Customer updates are not persisted                              | Retrieve and compare customer data after update |
+| P1 — High | Customer deletion leaves linked accounts accessible             | Verify customer and linked accounts are not retrievable after deletion |
+| P1 — High | Unexpected responses are treated as acceptable during execution | Tighten status assertions, especially dependency-related checks |
+| P1 — High | Test-created records persist after failures                     | Add API-level cleanup to the scenario `@After` hook |
+| P2 — Medium | Shared runtime state affects independent execution              | Move mutable data to scenario-scoped storage |
+| P2 — Medium | API outages or defects block execution                          | Record diagnostics and report blocked scenarios separately |
+
+## 3. Known Omissions and Limitations
+1. API-level test data cleanup is incomplete. Existing hooks clear local execution state, but do not reliably remove customer and account records created on the API, particularly when a scenario fails.
+2. Unexpected HTTP 302 responses require investigation. Account retrieval returned redirects where the test expected HTTP 200. Verify the API contract, Location header, and client redirect handling before classifying this as a confirmed API defect.
+3. Scenario isolation is limited. Shared static runtime maps and response fields can introduce cross-scenario dependencies, especially if parallel execution is introduced.
+4. Additional negative cases are not covered. Examples include unknown customer/account references and malformed request payloads. These are optional extensions beyond the selected additional negative scenarios.
+
+###  Next Priorities
+1. Investigate HTTP 302 account retrieval responses and rerun the affected scenarios after confirming expected behavior.
+2. Implement API-level cleanup in Cucumber hooks with failure-safe behavior and appropriate cleanup ordering.
+3. Introduce scenario-scoped test context to avoid reliance on mutable static state.
+4. Add further negative coverage if time remains after required acceptance criteria are consistently passing.
+
+## Actual Time Spent
+
+**Total Effort: 28 Hours**
+
+| Activity | Initial Implementation | After First-Round Feedback |      Total |
+|---|---:|---------------------------:|-----------:|
+| Requirement analysis and test strategy | 2 hrs |                      1 hrs |      3 hrs |
+| Framework setup and configuration | 3 hrs |                    0.5 hrs |    3.5 hrs |
+| API request builders, POJOs, and utilities | 4 hrs |                       1 hr |      5 hrs |
+| Cucumber feature files and step definitions | 5 hrs |                      2 hrs |      7 hrs |
+| Response validation and assertions | 2 hrs |                     1.5 hr |    3.5 hrs |
+| Test execution, debugging, and defect analysis | 3 hrs |                       1 hr |      4 hrs |
+| Documentation and README preparation | 1 hr |                      1 hrs |      2 hrs |
+| **Total** | **20 hrs** |                  **8 hrs** | **28 hrs** |
+
+### Effort Breakdown
+
+**Initial Implementation — 20 Hours**
+
+Focused on requirement analysis, framework design, API automation development, Cucumber scenario implementation, response validations, and initial test execution.
+
+**Post First-Round Feedback — 8 Hours**
+
+Focused on refining the existing implementation, improving validations, addressing feedback, re-executing scenarios, investigating failures, and updating documentation.
+
+**Total Actual Effort: 28 Hours**
+
+*The total reflects approximately 28 hours of hands-on work across initial development and post-feedback improvements. The activity-level split is an estimated allocation of the reported total.*****
