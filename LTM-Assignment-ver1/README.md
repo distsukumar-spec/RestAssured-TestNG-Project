@@ -116,14 +116,14 @@ The feature file currently describes these API workflows:
 Update `src/main/resources/config.properties` to point to the required environment:
 
 ```properties
-qa=https://orca-app-8ytxl.ondigitalocean.app/bank-api
-stage=https://orca-app-8ytxl.ondigitalocean.app/bank-api
+active=https://orca-app-8ytxl.ondigitalocean.app/bank-api
+alternate=https://seahorse-app-tam6f.ondigitalocean.app/bank-api
 
 # Active environment
-env=qa
+env=active
 ```
 
-Change `env` to the environment key you want to run against (`qa` or `stage`).
+Change `env` to the environment key you want to run against (`active` or `alternate`).
 
 ## Run the Tests
 
@@ -132,10 +132,10 @@ From the project root directory, run:
 ```bash
 mvn clean test  
 ```
-Run with selective env & override configured env
+Run with selective env & override configured env in case of default configured env server is down
 
 ```bash
-mvn clean test -Denv=qa 
+mvn clean test -Denv=active 
 ```
 
 Maven Surefire is configured to execute `E2E_CustomerLifeCycle_TestRunner`.

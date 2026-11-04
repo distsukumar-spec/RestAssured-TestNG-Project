@@ -6,6 +6,7 @@ import io.cucumber.java.Scenario;
 
 public class ScenarioHooks {
 
+
     @Before
     public void beforeScenario(Scenario scenario) {
         ScenarioContext.setScenario(scenario);
@@ -19,6 +20,11 @@ public class ScenarioHooks {
             }
         } finally {
             ScenarioContext.clear();
+
         }
     }
+
+
+
+
 }

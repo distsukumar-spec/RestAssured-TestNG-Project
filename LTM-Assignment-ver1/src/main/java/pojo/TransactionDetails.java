@@ -9,6 +9,8 @@ public class TransactionDetails {
     private String txType;
     private Double txAmount;
 
+    private int count;
+
     public Long getAccountNumber() {
         return accountNumber;
     }
@@ -49,5 +51,7 @@ public class TransactionDetails {
         return "{accountNumber=" + accountNumber + ", txDateTime=" + txDateTime + ", txType=" + txType +
                 ", txAmount=" + txAmount + "}";
     }
+
+
 }
 

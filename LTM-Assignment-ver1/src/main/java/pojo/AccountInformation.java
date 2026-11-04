@@ -3,6 +3,7 @@ package pojo;
 import com.google.gson.JsonObject;
 import net.datafaker.Faker;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +14,7 @@ public class AccountInformation {
     private BankInformation bankInformation;
     private String accountStatus;
     private String accountType;
-    private Double accountBalance;
+    private BigDecimal accountBalance;
     private String accountCreated;
 
     public Long getAccountNumber() {
@@ -48,11 +49,11 @@ public class AccountInformation {
         this.accountType = accountType;
     }
 
-    public Double getAccountBalance() {
+    public BigDecimal getAccountBalance() {
         return accountBalance;
     }
 
-    public void setAccountBalance(Double accountBalance) {
+    public void setAccountBalance(BigDecimal accountBalance) {
         this.accountBalance = accountBalance;
     }
 
@@ -60,16 +61,27 @@ public class AccountInformation {
         return accountCreated;
     }
 
-
-
-    public static AccountInformation getFakeAccountInformation(){
+    public static AccountInformation getFakeActiveAccountInformation(){
         Faker faker = new Faker();
         AccountInformation accountInfo = new AccountInformation();
         // Set fake values for each field
         accountInfo.setAccountNumber(faker.number().randomNumber(10));
-        accountInfo.setAccountStatus(faker.options().option("Active", "Inactive"));
+        accountInfo.setAccountStatus(faker.options().option("Active"));
         accountInfo.setAccountType(faker.options().option("Checking", "Savings"));
-        accountInfo.setAccountBalance(faker.number().randomDouble(2, 1000, 10000));
+        accountInfo.setAccountBalance(BigDecimal.valueOf(faker.number().randomDouble(2, 1000, 10000)));
+        accountInfo.setAccountCreated();
+        accountInfo.setBankInformation(BankInformation.getFakeBankInformation());
+        return accountInfo;
+    }
+
+    public static AccountInformation getFakeInactiveAccountInformation(){
+        Faker faker = new Faker();
+        AccountInformation accountInfo = new AccountInformation();
+        // Set fake values for each field
+        accountInfo.setAccountNumber(faker.number().randomNumber(10));
+        accountInfo.setAccountStatus(faker.options().option("Inactive"));
+        accountInfo.setAccountType(faker.options().option("Checking", "Savings"));
+        accountInfo.setAccountBalance(BigDecimal.valueOf(faker.number().randomDouble(2, 1000, 10000)));
         accountInfo.setAccountCreated();
         accountInfo.setBankInformation(BankInformation.getFakeBankInformation());
         return accountInfo;

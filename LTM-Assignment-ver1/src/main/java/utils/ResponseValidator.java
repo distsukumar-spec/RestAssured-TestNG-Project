@@ -3,8 +3,11 @@ package utils;
 import io.restassured.response.Response;
 import org.apache.poi.ss.formula.functions.T;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static utils.AppSpecificAssertions.logger;
 
 public class ResponseValidator {
 
@@ -47,10 +50,19 @@ public class ResponseValidator {
         }
     }
 
+    public static void validateJsonPathBigDecimal(Response response,String jsonPath, BigDecimal expectedValue) {
+        BigDecimal actualValue = BigDecimal.valueOf(response.getBody().jsonPath().getDouble(jsonPath));
+            if (actualValue.compareTo(expectedValue)!=0) {
+                throw new AssertionError("Expected value at JSON path '" + jsonPath + "': " + expectedValue + ", but got: " + actualValue);
+            } else {
+                logger.info("JSON path data validation passed for path: " + jsonPath + ". Expected and actual value: " + expectedValue);
+            }
+        }
+
     public static void validateResponseBodyContainsData(String respBody, String searchContent) {
 
             if (!respBody.contains(searchContent)) {
-                throw new AssertionError("Response Body '" + respBody + "does not contain the search Content: " + searchContent);
+                throw new AssertionError("Response Body '" + respBody + "does not contain the required Content: " + searchContent);
             } else {
                 logger.info("Response body has the search Content " + searchContent);
             }
@@ -69,6 +81,7 @@ public class ResponseValidator {
             logger.info("JSON presence validation passed. Expected presence: " + shouldBePresent + ", Actual presence: " + isPresent);
         }
     }
-
-
 }
+
+
+

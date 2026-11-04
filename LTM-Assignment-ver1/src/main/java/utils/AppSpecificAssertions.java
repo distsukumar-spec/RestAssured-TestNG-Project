@@ -8,6 +8,7 @@ import io.restassured.response.Response;
 import pojo.AccountInformation;
 import pojo.TransferDetails;
 
+import java.math.BigDecimal;
 import java.util.logging.Logger;
 
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
@@ -26,6 +27,10 @@ public class AppSpecificAssertions {
         }
     }
 
+    public static void validateAccountBalance(BigDecimal expected,BigDecimal actual){
+
+    }
+
     public static void validateTransferSuccessMessage(String ResponseBody,String customerNumber){
         String expectedMessage = "Success: Amount transferred for Customer Number "+customerNumber;
         if(!ResponseBody.contains(expectedMessage)){
@@ -35,35 +40,29 @@ public class AppSpecificAssertions {
         }
     }
 
-    public static void validateTransaction(String expectedTransaction,double expectedTransactionAmount, long expectedAccountNumber,Response transferResposne,Response transactionResponse) {
-
-//        long expectedAccountNumber = expectedTransaction.equalsIgnoreCase("debit") ? expectedAccountNumber : transferDetails.getToAccountNumber();
-
-        String expectedTransactionTime = transferResposne.headers().get("date").toString().substring(22, 30);
-        System.out.println(expectedTransactionTime);
+    public static void validateTransaction(String expectedTransaction, BigDecimal expectedTransactionAmount, long expectedAccountNumber, Response transferResposne, Response transactionResponse) {
 
         JsonArray transactions = JsonParser.parseString(transactionResponse.getBody().asString()).getAsJsonArray();
         JsonObject targetTransaction = null;
         for(JsonElement transaction:transactions){
             String actualTransactionType = transaction.getAsJsonObject().get("txType").getAsString();
-            String actualTransactionTime = transaction.getAsJsonObject().get("txDateTime").getAsString();
-            if(actualTransactionType.equalsIgnoreCase(expectedTransaction) && actualTransactionTime.equalsIgnoreCase(expectedTransactionTime)){
+            BigDecimal actualTransactionAmount = transaction.getAsJsonObject().get("txAmount").getAsBigDecimal();
+            if(actualTransactionType.equalsIgnoreCase(expectedTransaction) && actualTransactionAmount.compareTo(expectedTransactionAmount)==0){
                 targetTransaction = transaction.getAsJsonObject();
             }
         }
-//        JsonObject actualTransaction = transactionResponse.getBody().jsonPath().getJsonObject(
-//                "find { it.txDateTime == '" + expectedTransactionTime +
-//                        "' && it.txType == '" + expectedTransaction + "' }"
-//        );
 
+        if(targetTransaction==null){
+            throw new AssertionError(("Unable to find the Expected Data: " +expectedAccountNumber+" "+expectedTransactionAmount+" "+expectedTransaction
+                    + ", from " + transactions.getAsJsonArray().toString()));
+        }
         long actualAcctNo = targetTransaction.get("accountNumber").getAsNumber().longValue();
         String actualTxType = targetTransaction.get("txType").getAsString();
-        double actualTransferAmount = targetTransaction.get("txAmount").getAsDouble();
-        String actualTxDateTime = targetTransaction.get("txDateTime").getAsString();
+        BigDecimal actualTransferAmount = targetTransaction.get("txAmount").getAsBigDecimal();
+
 
         if(!(expectedAccountNumber==actualAcctNo
-                && expectedTransactionAmount==actualTransferAmount
-                && expectedTransactionTime.contentEquals(actualTxDateTime)
+                && expectedTransactionAmount.compareTo(actualTransferAmount)==0
                 && expectedTransaction.equalsIgnoreCase(actualTxType))){
             throw new AssertionError("Expected Data: " +expectedAccountNumber+" "+expectedTransactionAmount+" "+expectedTransaction
                                             + ", but got: " + targetTransaction.toString());
@@ -72,18 +71,11 @@ public class AppSpecificAssertions {
                     +expectedAccountNumber+" "+expectedTransactionAmount+" "+expectedTransaction);
         }
 
-        System.out.println("txdatetime: "+expectedTransactionTime);
-        transferResposne.prettyPrint();
-        transactionResponse.prettyPrint();
-        System.out.println("Expected Transaction: " + expectedTransaction);
-
-    }
-
-    public static void validateCreditDifference(TransferDetails transferDetails,String transactionType, AccountInformation beforeTransaction, AccountInformation afterTransaction) {
-
 
 
     }
+
+
 
 
 

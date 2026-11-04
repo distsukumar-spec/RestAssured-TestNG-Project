@@ -1,9 +1,11 @@
 package pojo;
 
+import java.math.BigDecimal;
+
 public class TransferDetails {
     private Long fromAccountNumber;
     private Long toAccountNumber;
-    private Double transferAmount;
+    private BigDecimal transferAmount;
 
     public Long getFromAccountNumber() {
         return fromAccountNumber;
@@ -21,15 +23,15 @@ public class TransferDetails {
         this.toAccountNumber = toAccountNumber;
     }
 
-    public Double getTransferAmount() {
+    public BigDecimal getTransferAmount() {
         return transferAmount;
     }
 
-    public void setTransferAmount(Double transferAmount) {
+    public void setTransferAmount(BigDecimal transferAmount) {
         this.transferAmount = transferAmount;
     }
 
-    public static TransferDetails getTransferPayload(Long fromAccountNumber, Long toAccountNumber, Double transferAmount) {
+    public static TransferDetails getTransferPayload(Long fromAccountNumber, Long toAccountNumber, BigDecimal transferAmount) {
         TransferDetails transferDetails = new TransferDetails();
         transferDetails.fromAccountNumber = fromAccountNumber;
         transferDetails.toAccountNumber = toAccountNumber;
