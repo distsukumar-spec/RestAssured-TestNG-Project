@@ -12,17 +12,7 @@ public class ScenarioHooks {
         ScenarioContext.setScenario(scenario);
     }
 
-    @After
-    public void afterScenario(Scenario scenario) {
-        try {
-            if (scenario != null && scenario.isFailed()) {
-                scenario.log("SCENARIO FAILED");
-            }
-        } finally {
-            ScenarioContext.clear();
 
-        }
-    }
 
 
 

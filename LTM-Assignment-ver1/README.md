@@ -146,6 +146,7 @@ Maven Surefire is configured to execute `E2E_CustomerLifeCycle_TestRunner`.
 - Maven
 - REST Assured
 - Cucumber (Gherkin)
+- 
 - JUnit Platform
 - TestNG assertions
 - JSON Schema validation
@@ -209,10 +210,9 @@ The framework follows a Behavior-Driven Development (BDD) approach using Cucumbe
 | P2 — Medium | API outages or defects block execution                          | Record diagnostics and report blocked scenarios separately |
 
 ## 3. Known Omissions and Limitations
-1. API-level test data cleanup is incomplete. Existing hooks clear local execution state, but do not reliably remove customer and account records created on the API, particularly when a scenario fails.
-2. Unexpected HTTP 302 responses require investigation. Account retrieval returned redirects where the test expected HTTP 200. Verify the API contract, Location header, and client redirect handling before classifying this as a confirmed API defect.
-3. Scenario isolation is limited. Shared static runtime maps and response fields can introduce cross-scenario dependencies, especially if parallel execution is introduced.
-4. Additional negative cases are not covered. Examples include unknown customer/account references and malformed request payloads. These are optional extensions beyond the selected additional negative scenarios.
+1.  Unexpected HTTP 302 responses require investigation. Account retrieval returned redirects where the test expected HTTP 200. Verify the API contract, Location header, and client redirect handling before classifying this as a confirmed API defect.
+2.  Scenario isolation is limited. Shared static runtime maps and response fields can introduce cross-scenario dependencies, especially if parallel execution is introduced.
+3.  Additional negative cases are not covered. Examples include unknown customer/account references and malformed request payloads. These are optional extensions beyond the selected additional negative scenarios.
 
 ###  Next Priorities
 1. Investigate HTTP 302 account retrieval responses and rerun the affected scenarios after confirming expected behavior.
@@ -248,3 +248,38 @@ Focused on refining the existing implementation, improving validations, addressi
 **Total Actual Effort: 28 Hours**
 
 *The total reflects approximately 28 hours of hands-on work across initial development and post-feedback improvements. The activity-level split is an estimated allocation of the reported total.*****
+
+## Test Execution Summary
+
+**Evidence:** Earlier Cucumber JSON execution (`cucumber.json`), cross-referenced with `LTM Asserssment - Test Execution.xlsx`.
+
+| Metric | Result |
+|---|---:|
+| Total executed Cucumber scenarios | 7 |
+| Passed | 4 |
+| Failed | 3 |
+| Pass rate | 57.1% |
+
+### Scenario Results
+
+| Scenario | Result | Notes |
+|---|---|---|
+| Customer lifecycle — create, retrieve, update, create accounts and delete | **FAIL** | Customer GET after deletion returned HTTP 200 instead of expected 404; subsequent deletion checks skipped (BUG-003). |
+| Successful fund transfer (2999.99) | **PASS** | Successful transfer, balance and debit/credit history checks passed in this execution. |
+| Rejected transfer — amount 0.00 | **FAIL** | Returned HTTP 200 instead of expected 400 (BUG-004). Subsequent balance/history assertions skipped. |
+| Rejected transfer — insufficient funds (3000.00) | **PASS** | Rejection and unchanged balance/history validations passed. |
+| Rejected transfer — amount -1.00 | **FAIL** | Returned HTTP 200 instead of expected 400 (BUG-005). Subsequent balance/history assertions skipped. |
+| Duplicate customer creation | **PASS** | Duplicate customer request rejected as expected. |
+| Duplicate account creation | **PASS** | Duplicate account request rejected as expected. |
+
+**Scope note:** Additional cases listed in the test case tracker (such as missing fields, invalid payloads, unknown identifiers, and account opening-balance boundaries) are **not executed** unless supported by a corresponding Cucumber scenario. They are not included in the seven-scenario total. A separate account retrieval status observation in the tracker does not change the successful-transfer scenario's recorded result.
+
+## Bug Summary
+
+| Bug ID | Defect | Priority | Severity | Evidence / current interpretation |
+|---|---|---|---|---|
+| BUG-001 | Account retrieval returns HTTP 302 instead of documented HTTP 200 | P1 — High | Major | Separately observed; **not counted as a failed scenario** in the earlier JSON execution. |
+| BUG-002 | Retrieved account has `accountCreated: null` | P1 — High | Major | Separately reported data-quality concern; timestamp is typed as `date-time` in OpenAPI but is not explicitly required/non-null. Requires investigation. |
+| BUG-003 | Deleted customer remains retrievable | P1 — High | Major | **Confirmed failed assertion in earlier JSON:** GET after DELETE returned HTTP 200 rather than expected 404. |
+| BUG-004 | Zero-amount transfer is accepted | P0 — Critical | Critical | **Confirmed failed assertion in earlier JSON:** transfer of `0.00` returned HTTP 200 instead of 400. |
+| BUG-005 | Negative-amount transfer is accepted | P0 — Critical | Critical | **Confirmed failed assertion in earlier JSON:** transfer of `-1.00` returned HTTP 200 instead of 400. |

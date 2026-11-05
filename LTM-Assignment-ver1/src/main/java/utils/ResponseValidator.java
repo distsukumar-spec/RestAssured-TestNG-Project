@@ -1,5 +1,6 @@
 package utils;
 
+import com.google.gson.JsonParser;
 import io.restassured.response.Response;
 import org.apache.poi.ss.formula.functions.T;
 
@@ -35,7 +36,7 @@ public class ResponseValidator {
     }
 
     public static void validateJsonPathBigDecimal(Response response,String jsonPath, BigDecimal expectedValue) {
-        BigDecimal actualValue = BigDecimal.valueOf(response.getBody().jsonPath().getDouble(jsonPath));
+        BigDecimal actualValue = JsonParser.parseString(response.getBody().asString()).getAsJsonObject().get(jsonPath).getAsBigDecimal();
             if (actualValue.compareTo(expectedValue)!=0) {
                 throw new AssertionError("Expected value at JSON path '" + jsonPath + "': " + expectedValue + ", but got: " + actualValue);
             } else {

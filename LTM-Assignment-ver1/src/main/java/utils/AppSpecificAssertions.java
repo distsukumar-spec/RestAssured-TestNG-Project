@@ -5,8 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.restassured.response.Response;
-import pojo.AccountInformation;
-import pojo.TransferDetails;
 
 import java.math.BigDecimal;
 import java.util.logging.Logger;
@@ -24,19 +22,6 @@ public class AppSpecificAssertions {
         } catch (AssertionError e) {
             logger.severe("JSON schema validation failed for schema: " + schemaPath + ". Error: " + e.getMessage());
             throw e;
-        }
-    }
-
-    public static void validateAccountBalance(BigDecimal expected,BigDecimal actual){
-
-    }
-
-    public static void validateTransferSuccessMessage(String ResponseBody,String customerNumber){
-        String expectedMessage = "Success: Amount transferred for Customer Number "+customerNumber;
-        if(!ResponseBody.contains(expectedMessage)){
-            throw new AssertionError("Expected message: " + expectedMessage + ", but got: " + ResponseBody);
-        }else{
-            logger.info("Transfer success message validation passed. Expected and actual message: " + expectedMessage);
         }
     }
 
@@ -70,13 +55,6 @@ public class AppSpecificAssertions {
             logger.info("Transaction Details validation passed. Expected and actual message: "
                     +expectedAccountNumber+" "+expectedTransactionAmount+" "+expectedTransaction);
         }
-
-
-
     }
-
-
-
-
 
 }

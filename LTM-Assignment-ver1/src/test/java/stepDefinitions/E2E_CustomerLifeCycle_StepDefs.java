@@ -3,7 +3,9 @@ package stepDefinitions;
 
 import com.google.gson.JsonParser;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.After;
 import io.cucumber.java.AfterAll;
+import io.cucumber.java.Scenario;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -239,7 +241,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
             accountInformation = AccountInformation.getFakeActiveAccountInformation();
             accountInformation.setAccountType(accountType);
             accountInformation.setAccountBalance(initialBalance);
-
+            logStep("Payload: "+accountInformation+"for Customer "+customerDetails.getCustomerNumber().toString());
             runTimeAccts.put(accountIdentifier,accountInformation);
 
             addAccount = APIBuilder.post(EndPoints.AccountTransactions
@@ -254,35 +256,7 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
 
     }
 
-    @Then("Create an Account for the Customer")
-    public void createAnAccountsForTheCustomer(DataTable dataTable) {
 
-       Map<String, String> account = dataTable.asMap();
-
-
-            String accountIdentifier = account.get("account");
-            String accountType = account.get("accountType");
-            BigDecimal initialBalance = new BigDecimal(account.get("initialBalance"));
-
-            logStep("Creating a new Account for the Customer");
-
-            accountInformation = AccountInformation.getFakeActiveAccountInformation();
-            accountInformation.setAccountType(accountType);
-            accountInformation.setAccountBalance(initialBalance);
-
-            runTimeAccts.put(accountIdentifier,accountInformation);
-
-            addAccount = APIBuilder.post(EndPoints.AccountTransactions
-                            .getAddAccountEndpoint(customerDetails.getCustomerNumber().toString()),
-                    HeaderConfig.getDefaultHeaders(),
-                    accountInformation);
-
-            ResponseValidator.validateResponseCode(addAccount.getStatusCode(), 201);
-
-
-
-
-    }
 
     @When("attempting to create a duplicate account")
     public void attemptingToCreateADuplicateAccount() {
@@ -386,16 +360,12 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
 
     @And("Verify the Customer associated accounts are deleted")
     public void verifyTheCustomerAssociatedAccountsAreDeleted(DataTable dataTable) {
-        List<String> accountIdentifiers = dataTable.asList().stream().skip(1).toList();
 
         logStep("Verifying customer associated accounts deleted");
-        for(String accountIdentifier:accountIdentifiers){
-            logStep("Verifying customer account "+accountIdentifier+" existence");
-            AccountInformation account = runTimeAccts.get(accountIdentifier);
-
+        for(Map.Entry<String,AccountInformation> account:runTimeAccts.entrySet()){
 
             getAccount = APIBuilder.get(EndPoints.AccountTransactions
-                            .getAccountEndpoint(customerDetails.getCustomerNumber().toString())
+                            .getAccountEndpoint(account.getValue().getAccountNumber().toString())
                     , HeaderConfig.getDefaultHeaders());
 
             ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 404);
@@ -405,91 +375,8 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         logSuccess("Customer's associated accounts are deleted successfuly");
     }
 
-//    @And("Create an Account for the Customer")
-    public void createAnAccountForTheCustomer(DataTable dataTable) {
-    }
 
-//    @Then("Retrieve the created Account Verify Account Balance {bigdecimal}")
-    public void retrieveTheCreatedAccountVerifyAccountBalance(int arg0, int arg1) {
-        
-    }
 
-    @When("Transfer {bigdecimal} from Account {long} to Account {long}")
-    public void transferFromAccountToAccount(BigDecimal transferAmount, long sourceAccountRef,
-                                             long destinationAccountRef) {
-        long sourceAccount = sourceAccountRef==111111111 ? accountNo1: sourceAccountRef;
-        long destinationAccount = destinationAccountRef==222222222 ? accountNo2: destinationAccountRef;
-
-        logStep("Initiating fund transfer");
-        logStep("Transfer amount: " + transferAmount);
-        logStep("Source account: " + sourceAccount);
-        logStep("Destination account: " + destinationAccount);
-
-        transferDetails = TransferDetails.getTransferPayload(
-                sourceAccount, destinationAccount, transferAmount
-        );
-        logStep("Transfer request: " + transferDetails);
-
-        transferFund = APIBuilder.put(
-                EndPoints.AccountTransactions.getTransferFundEndpoint(
-                        customerDetails.getCustomerNumber().toString()
-                ),
-                HeaderConfig.getDefaultHeaders(),
-                transferDetails
-        );
-
-        logApiResponse("FUND TRANSFER - PUT", transferFund);
-
-        /*
-         * Do not assert HTTP 200 here. This step is also used by negative
-         * scenarios, where the following step validates the expected failure.
-         */
-        logStep("Fund transfer API execution completed with status: "
-                + transferFund.getStatusCode());
-    }
-
-//    @Then("Retrieve the created Account {long} and Verify Account Balance {bigdecimal}")
-//    public void retrieveTheCreatedAccountAndVerifyAccountBalance(long accountNo, BigDecimal accountBalance) {
-//
-//        accountNo = (accountNo==111111111) ? accountNo1 : accountNo2;
-//        getAccount = APIBuilder.get(EndPoints.AccountTransactions.getAccountEndpoint(String.valueOf(accountNo1))
-//                ,HeaderConfig.getDefaultHeaders());
-//        System.out.println("Account 1 Details: " +accountNo);
-//        System.out.println(accountInformation);
-//
-//        ResponseValidator.validateResponseCode(getAccount, 200,true);
-//
-//        ResponseValidator.validateJsonPathData(getAccount,"accountBalance",accountBalance);
-//
-//
-//
-//    }
-    /*
-     * Legacy step kept for feature files that use this wording.
-     * The DataTable is expected to contain key/value rows.
-     */
-    // Shared helper for DataTable-based account creation.
-    // The feature step "Create new Account" is bound to createNewAccount().
-
-    @Then("Retrieve the created Account {long} and Verify Account Balance {bigdecimal}")
-    public void retrieveTheCreatedAccountVerifyAccountBalance(long account, BigDecimal expectedBalance) {
-        Assert.assertNotNull(accountInformation, "No account has been created yet");
-        account = account==111111111 ? accountNo1 : account;
-        account = account==222222222 ? accountNo2 : account;
-
-        logStep("Retrieving account and verifying balance");
-        getAccount = APIBuilder.get(
-                EndPoints.AccountTransactions.getAccountEndpoint(
-                        String.valueOf(account)
-                ),
-                HeaderConfig.getDefaultHeaders()
-        );
-
-        logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
-        ResponseValidator.validateJsonPathData(getAccount, "accountBalance", expectedBalance);
-        logSuccess("Account balance verified: " + expectedBalance);
-    }
 
 
     @Then("Verify Expected API Failure with Status Code {int}")
@@ -576,29 +463,10 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
                 HeaderConfig.getDefaultHeaders(),
                 accountInformation);
 
-        System.out.println("Customer Details: " + customerDetails.getCustomerNumber());
-        System.out.println("Account  Details: " + accountInformation);
 
         ResponseValidator.validateResponseCode(addAccount.getStatusCode(), 201);
 
 
-    }
-
-    @Then("Retrieve the created Account {string} and Verify Account Balance {bigdecimal}")
-    public void retrieveTheCreatedAccountAndVerifyAccountBalance(String account, BigDecimal balance) {
-
-        logStep("Retrieving account and verifying balance");
-        getAccount = APIBuilder.get(
-                EndPoints.AccountTransactions.getAccountEndpoint(
-                        String.valueOf(runTimeAccts.get(account).getAccountNumber())
-                ),
-                HeaderConfig.getDefaultHeaders()
-        );
-
-        logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-        ResponseValidator.validateResponseCode(getAccount.getStatusCode(), 200);
-        ResponseValidator.validateJsonPathData(getAccount, "accountBalance", balance);
-        logSuccess("Account balance verified: " + balance);
     }
 
 
@@ -608,11 +476,8 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
 
         AccountInformation sourceAccount = runTimeAccts.get(arg1);
         AccountInformation destinationAccount = runTimeAccts.get(arg2);
-        System.out.println(transferAmount +" == "+sourceAccount.getAccountBalance());
-        System.out.println(transferAmount.compareTo(new BigDecimal("0.00"))>0);
-        System.out.println(transferAmount.compareTo(sourceAccount.getAccountBalance()) < 0);
-        boolean postiveAmount = (transferAmount.compareTo(new BigDecimal("0.00"))>0) && transferAmount.compareTo(sourceAccount.getAccountBalance())<0;
-        System.out.println(postiveAmount);
+          boolean postiveAmount = (transferAmount.compareTo(new BigDecimal("0.00"))>0) && transferAmount.compareTo(sourceAccount.getAccountBalance())<0;
+
         logStep("Initiating fund transfer");
         logStep("Transfer amount: " + transferAmount);
         logStep("Source account: " + runTimeAccts.get(arg1));
@@ -642,28 +507,12 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         }else{
             ResponseValidator.validateResponseCode(transferFund.statusCode(), 400);
         }
-        /*
-         * Do not assert HTTP 200 here. This step is also used by negative
-         * scenarios, where the following step validates the expected failure.
-         */
+
         logStep("Fund transfer API execution completed with status: "
                 + transferFund.getStatusCode());
     }
 
-//    @Then("Verify the {string} Transaction of {bigdecimal} in Account {string}")
-//    public void verifyTheTransactionOfTransferAmountInAccount(String transaction,BigDecimal transferAmount,String account) {
-//
-//        long accountNo = runTimeAccts.get(account);
-//        transactionDetailsForAccount1 = APIBuilder.get(EndPoints.AccountTransactions
-//                        .getAllTransactionsEndpoint(String.valueOf(accountNo)),
-//                HeaderConfig.getDefaultHeaders());
-//
-//        ResponseValidator.validateResponseCode(transactionDetailsForAccount1.getStatusCode(), 200);
-//
-//       AppSpecificAssertions.validateTransaction(transaction,transferAmount,accountNo,transferFund,transactionDetailsForAccount1);
-//
-//
-//    }
+
 
     @Then("Verify the {string} changes of transferred amount {bigdecimal} in Account {string}")
     public void verifyTheTransactionOfTransferAmountInAccount(String transaction, BigDecimal transferAmount, String account) {
@@ -762,23 +611,6 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
         ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance",  runTimeAccts.get(destAccount).getAccountBalance().add(transferredAmount));
         logSuccess("Account balance increased in the Destination account and Verified: " + runTimeAccts.get(destAccount).getAccountBalance().add(transferredAmount));
     }
-//
-//    @And("Verify the balance remains changed in the account {string} for an invalid transfer")
-//    public void verifyTheBalanceRemainsUnchangedInTheAccountAfterAnInvalidTransfer(String srcAccount) {
-//        logStep("Retrieving account and verifying balance");
-//        getAccount = APIBuilder.get(
-//                EndPoints.AccountTransactions.getAccountEndpoint(
-//                        String.valueOf(runTimeAccts.get(srcAccount).getAccountNumber())
-//                ),
-//                HeaderConfig.getDefaultHeaders()
-//        );
-//
-//        logApiResponse("RETRIEVE ACCOUNT - GET", getAccount);
-//        ResponseValidator.validateResponseCode(getAccount, 200, true);
-//        ResponseValidator.validateJsonPathBigDecimal(getAccount, "accountBalance",  runTimeAccts.get(srcAccount).getAccountBalance());
-//        logSuccess("Account balance not decreased in the source account "+srcAccount);
-//        logSuccess("Account balance - Before: "+runTimeAccts.get(srcAccount).getAccountBalance() );
-//    }
 
 
     @And("Retrieve the total no.of Transactions from Transaction History for the account {string} before transfer")
@@ -810,11 +642,6 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
                     + " from Transaction history for the account "
                     + runTimeAccts.get(account).getAccountNumber() +" before Transfer");
 
-//        AppSpecificAssertions.validateTransaction(
-//                transaction, transferAmount, accountNo, transferFund, transactionDetailsForAccount1);
-//
-//        logStep("Successfully verified " + transaction + " transaction of amount "
-//                + transferAmount + " for account: " + accountNo);
 
     }
 
@@ -824,7 +651,6 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
 
         logStep("Initiating transaction verification");
         logStep("Transaction type: " + transaction);
-//        logStep("Expected transaction amount: " + transferAmount);
         logStep("Account number: " + accountNo);
 
         logStep("Fetching all transactions for account: " + accountNo);
@@ -899,12 +725,25 @@ public class E2E_CustomerLifeCycle_StepDefs extends BaseSteps {
     }
 
 
-    @AfterAll
-    public static void after_All(){
-        accountNo1 = 0;
-        runTimeAccts = null;
-        runTimeTranHistory =  null;
-        currentResponse = null;
+//    @After
+//    public static void after_All(){
+//
+//    }
+
+    @After
+    public void afterScenario(Scenario scenario) {
+        try {
+            if (scenario != null && scenario.isFailed()) {
+                scenario.log("SCENARIO FAILED");
+            }
+        } finally {
+            ScenarioContext.clear();
+            accountNo1 = 0;
+            runTimeAccts = new HashedMap<>();
+            runTimeTranHistory =  null;
+            currentResponse = null;
+
+        }
     }
 
 }
